@@ -10,23 +10,29 @@ Project to create a 2D raycasted game in Rust
     ```
 
 ### Cross-Compilation
-1. <b>(Optional)</b> Cross-compile to Windows [5]
+1. Compile to Windows [5]
     ```
     rustup target add x86_64-pc-windows-gnu
     sudo apt install mingw-w64
 
     cargo build_win
     cargo run_win
+
+    .\target\x86_64-pc-windows-gnu\debug\rust-raycaster.exe
+    .\target\x86_64-pc-windows-gnu\release\rust-raycaster.exe
     ```
-2. <b>(Optional)</b> Cross-compile to Linux [5]
+2. Compile to Linux [5]
     ```
     rustup target add x86_64-unknown-linux-gnu
 
     cargo build_linux
     cargo run_linux
+
+    ./target/x86_64-unknown-linux-gnu/debug/rust-raycaster.exe
+    ./target/x86_64-unknown-linux-gnu/release/rust-raycaster.exe
     ```
 
-3. <b>(Optional)</b> Cross-compile to WASM [5]
+3. Compile to WASM [5]
     ```
     cargo install basic-http-server
     rustup target add wasm32-unknown-unknown
