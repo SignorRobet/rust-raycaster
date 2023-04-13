@@ -1,0 +1,18 @@
+[alias]
+# Build and Run Debug Versions
+build_linux = "build --target x86_64-unknown-linux-gnu"
+build_win = "build --target x86_64-pc-windows-gnu"
+build_wasm = "build --target wasm32-unknown-unknown"
+
+run_linux = "run --target x86_64-unknown-linux-gnu"
+run_win = "run --target x86_64-pc-windows-gnu"
+run_wasm = "run --target wasm32-unknown-unknown"
+
+# Build and Run Release Versions
+buildr_linux = "build --target x86_64-unknown-linux-gnu --release"
+buildr_win = "build --target x86_64-pc-windows-gnu --release"
+buildr_wasm = "build --target wasm32-unknown-unknown --release"
+
+runr_linux = "run --target x86_64-unknown-linux-gnu --release"
+runr_win = "run --target x86_64-pc-windows-gnu --release"
+runr_wasm = "run --target wasm32-unknown-unknown --release"
