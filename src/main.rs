@@ -1,24 +1,23 @@
-mod controls;
-mod dynamic_components;
-mod static_components;
+mod game;
+mod user;
 
-use dynamic_components::camera;
+use game::game_map::{self, GameMap};
 use macroquad::prelude::*;
-use static_components::game_defs::Player;
+use user::player::Player;
+use user::{camera, controls};
 
 #[macroquad::main("Ray-Caster")]
 async fn main() {
-    let player1: Player = Player::init(0.0, 0.0, 0.0);
+    let player2: Player = Player::init(0.0, 0.0, 0.0);
 
-    let _value: f32 = player1.get_x() + player1.get_y();
-
-    let player2: Player = Player::init_def();
+    let mut player1: Player = Player::init_def();
+    let game_map: GameMap = GameMap::init_def();
 
     // camera::render2();
 
     let mut i: f32 = 0.0;
     loop {
-        controls::handle_keyboard_input(player1);
+        controls::handle_keyboard_input(&mut player1, &game_map);
         clear_background(LIME);
 
         draw_line(40.0, 40.0, 100.0, 200.0, i, BLUE);

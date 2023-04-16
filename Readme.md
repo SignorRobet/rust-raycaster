@@ -64,3 +64,6 @@ WIP
 [3] https://macroquad.rs/docs/<br>
 [4] https://github.com/not-fl3/macroquad<br>
 [5] https://crates.io/crates/macroquad<br>
+
+## Further Reading
+[6] https://github.com/parasyte/pixels 
