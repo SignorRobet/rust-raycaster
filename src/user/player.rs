@@ -17,7 +17,7 @@ impl Player {
             y: 1.5,
             theta: 0.0,
             move_speed: 0.045,
-            rotate_speed: 2.0,
+            rotate_speed: 0.045,
         }
     }
     pub fn init(x: f32, y: f32, theta: f32) -> Player {
@@ -62,7 +62,7 @@ impl Player {
             (self.x, self.y) = previous_pos;
         }
         if forward || back || left || right {
-            info!("New State: {}, {}, {}", self.x, self.y, self.theta);
+            // info!("New State: {}, {}, {}", self.x, self.y, self.theta);
         }
         if left || right || (self.x, self.y) != previous_pos {
             return true;

@@ -23,7 +23,7 @@ impl GameMap {
     /// Check if the map contains a wall at a point.
     pub fn point_in_wall(&self, x: f32, y: f32) -> bool {
         match self.map_array.get(y as usize) {
-            Some(line) => (line & (0b1 << x as usize)) != 0,
+            Some(line) => (line & (0b1_u16.checked_shl(x as u32).unwrap_or(0))) != 0,
             None => true,
         }
     }
