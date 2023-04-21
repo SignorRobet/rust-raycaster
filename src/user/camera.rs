@@ -8,6 +8,8 @@ use core::f32::consts::{FRAC_PI_2, PI};
 const FOV: f32 = PI / 2.7; // The player's field of view.
 const HALF_FOV: f32 = FOV * 0.5; // Half the player's field of view.
 const RESOLUTION: (usize, usize) = (640, 500);
+const HALF_RES: (f32, f32) = (RESOLUTION.0 as f32 / 2., RESOLUTION.1 as f32 / 2.);
+const VIEWPORT_OFFSET: f32 = 20.;
 const ANGLE_STEP: f32 = FOV / RESOLUTION.0 as f32; // The angle between each ray.
 const WALL_HEIGHT: f32 = 500.0; // A magic number.
 
@@ -37,8 +39,8 @@ impl Camera {
         self.get_view_loop((x, y, theta), game_map);
 
         draw_rectangle_lines(
-            20.0,
-            20.0,
+            VIEWPORT_OFFSET,
+            VIEWPORT_OFFSET,
             RESOLUTION.0 as f32,
             RESOLUTION.1 as f32,
             2.0,
@@ -47,12 +49,14 @@ impl Camera {
         draw_text(&get_fps().to_string(), 15.0, 15.0, 20.0, DARKGRAY);
         draw_text(&theta.to_string(), 50.0, 15.0, 20.0, BLACK);
         draw_text(&format!("({}, {})", x, y), 150.0, 15.0, 20.0, BLACK);
+
+        Self::draw_crosshair(MAGENTA, 2., 10.);
     }
 
     // go through each column on screen and draw walls in the center.
     fn get_view_loop(&self, (x, y, theta): (f32, f32, f32), game_map: &GameMap) {
         for (x, wall) in self.get_view((x, y, theta), game_map).iter().enumerate() {
-            let x_f32: f32 = x as f32 + 20.0;
+            let x_f32: f32 = x as f32 + VIEWPORT_OFFSET;
             let (height, shadow) = wall;
             let wall_color;
             if *shadow {
@@ -69,6 +73,25 @@ impl Camera {
                 wall_color,
             );
         }
+    }
+
+    fn draw_crosshair(colour: Color, thickness: f32, length: f32) {
+        draw_line(
+            VIEWPORT_OFFSET + HALF_RES.0,
+            VIEWPORT_OFFSET + HALF_RES.1 - length,
+            VIEWPORT_OFFSET + HALF_RES.0,
+            VIEWPORT_OFFSET + HALF_RES.1 + length,
+            thickness,
+            colour,
+        );
+        draw_line(
+            VIEWPORT_OFFSET + HALF_RES.0 - length,
+            VIEWPORT_OFFSET + HALF_RES.1,
+            VIEWPORT_OFFSET + HALF_RES.0 + length,
+            VIEWPORT_OFFSET + HALF_RES.1,
+            thickness,
+            colour,
+        );
     }
 
     fn get_view(
