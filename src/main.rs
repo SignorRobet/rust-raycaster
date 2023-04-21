@@ -3,22 +3,23 @@ mod user;
 
 use game::game_map::GameMap;
 use macroquad::prelude::*;
-use user::controls::Movement;
+use user::camera::Camera;
+use user::controls::Input;
 use user::player::Player;
-use user::{camera::Camera, controls};
 
 #[macroquad::main("Ray-Caster")]
 async fn main() {
     const GAME_MAP: GameMap = GameMap::init_def();
 
     let mut player1: Player = Player::init_def();
-    let camera: Camera = Camera::init_def();
+    let mut camera: Camera = Camera::init();
     camera.render(&player1, &GAME_MAP);
 
-    let mut movement: Movement;
+    let mut input: Input = Input::init();
     loop {
-        movement = controls::handle_keyboard_input();
-        player1.update(&GAME_MAP, &movement);
+        input.handle_input();
+        player1.update(&GAME_MAP, &input);
+        camera.handle_input(&input);
         camera.render(&player1, &GAME_MAP);
 
         next_frame().await

@@ -1,7 +1,7 @@
-use crate::game::game_map::GameMap;
-use macroquad::logging::*;
+use macroquad::prelude::info;
 
-use super::controls::Movement;
+use super::controls::Input;
+use crate::game::game_map::GameMap;
 
 pub struct Player {
     x: f32,
@@ -33,34 +33,66 @@ impl Player {
     }
 
     // Update player pose by delta increments
-    pub fn update(&mut self, game_map: &GameMap, movement: &Movement) -> bool {
+    pub fn update(&mut self, game_map: &GameMap, input: &Input) -> bool {
         // store our current position in case we might need it later
-        let previous_pos = (self.x, self.y);
+        let previous_pos: (f32, f32) = (self.x, self.y);
+
+        let mut dx: f32 = 0.;
+        let mut dy: f32 = 0.;
 
         // sin functions are negative because map y-axis is flipped
-        if movement.forward {
-            self.x += self.theta.cos() * self.move_speed;
-            self.y += -self.theta.sin() * self.move_speed;
+        if input.movement_input.forward {
+            dx += self.move_speed * self.theta.cos();
+            dy += self.move_speed * -self.theta.sin();
         }
-        if movement.back {
-            self.x -= self.theta.cos() * self.move_speed;
-            self.y -= -self.theta.sin() * self.move_speed;
+        if input.movement_input.back {
+            dx -= self.move_speed * self.theta.cos();
+            dy -= self.move_speed * -self.theta.sin();
         }
-        if movement.left {
+        if input.movement_input.left {
             self.theta += self.rotate_speed;
         }
-        if movement.right {
+        if input.movement_input.right {
             self.theta -= self.rotate_speed;
         }
-        // if moving us on this frame put us into a wall just revert it
-        if game_map.point_in_wall(self.x, self.y) {
-            (self.x, self.y) = previous_pos;
+        let (x_coll, y_coll): (bool, bool) =
+            Player::detect_collision(&game_map, self.x, self.y, dx, dy);
+
+        if !x_coll {
+            self.x += dx;
         }
-        if movement.left || movement.right || (self.x, self.y) != previous_pos {
+        if !y_coll {
+            self.y += dy;
+        }
+        // if moving us on this frame put us into a wall just revert it
+        // if !game_map.point_in_wall(new_x, new_y) {
+        //     (self.x, self.y) = (new_x, new_y);
+        // }
+        if input.movement_input.left
+            || input.movement_input.right
+            || (self.x, self.y) != previous_pos
+        {
             return true;
         } else {
             return false;
         }
+    }
+
+    fn detect_collision(game_map: &GameMap, x: f32, y: f32, dx: f32, dy: f32) -> (bool, bool) {
+        let mut collisions: (bool, bool) = (false, false);
+        let new_x: f32 = x + dx;
+        let new_y: f32 = y + dy;
+
+        if game_map.point_in_wall(new_x, y) {
+            collisions.0 = true;
+            [info!("X collision")];
+        }
+        if game_map.point_in_wall(x, new_y) {
+            collisions.1 = true;
+            [info!("Y collision")];
+        }
+
+        return collisions;
     }
 
     // Set player pose to specified position

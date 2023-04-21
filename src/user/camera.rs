@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 
-use super::player::Player;
+use super::{controls::Input, player::Player};
 use crate::game::game_map::*;
 
 use core::f32::consts::{FRAC_PI_2, PI};
@@ -13,18 +13,21 @@ const WALL_HEIGHT: f32 = 300.0; // A magic number.
 
 pub struct Camera {
     fisheye: bool,
-    zoom: u8,
+    // zoom: u8,
 }
 
 impl Camera {
-    pub fn init_def() -> Camera {
+    pub fn init() -> Camera {
         Camera {
             fisheye: false,
-            zoom: 1,
+            // zoom: 1,
         }
     }
-    pub fn init(fisheye: bool, zoom: u8) -> Camera {
-        Camera { fisheye, zoom }
+
+    pub fn handle_input(&mut self, input: &Input) {
+        if input.game_input.fisheye {
+            self.toggle_fisheye();
+        }
     }
 
     pub fn render(&self, player: &Player, game_map: &GameMap) {
@@ -97,10 +100,10 @@ impl Camera {
             // Get the minimum of the two distances and
             // "convert" it into a wall height.
             if self.fisheye {
-                *wall = ((WALL_HEIGHT / f32::min(h_dist, v_dist)) as i32, shadow);
+                *wall = ((WALL_HEIGHT / min_dist) as i32, shadow);
             } else {
                 *wall = (
-                    (WALL_HEIGHT / (f32::min(h_dist, v_dist) * (angle - theta).cos())) as i32,
+                    (WALL_HEIGHT / (min_dist * (angle - theta).cos())) as i32,
                     shadow,
                 );
             }
