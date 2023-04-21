@@ -13,8 +13,9 @@ async fn main() {
 
     let mut player1: Player = Player::init_def();
     let camera: Camera = Camera::init_def();
-    let mut movement: Movement;
+    camera.render(&player1, &GAME_MAP);
 
+    let mut movement: Movement;
     loop {
         movement = controls::handle_keyboard_input();
         player1.update(&GAME_MAP, &movement);
