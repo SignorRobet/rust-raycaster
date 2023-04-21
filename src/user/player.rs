@@ -1,7 +1,8 @@
 use crate::game::game_map::GameMap;
 use macroquad::logging::*;
 
-#[derive(Copy, Clone)]
+use super::controls::Movement;
+
 pub struct Player {
     x: f32,
     y: f32,
@@ -10,8 +11,9 @@ pub struct Player {
     rotate_speed: f32,
 }
 
+#[allow(dead_code)]
 impl Player {
-    pub fn init_def() -> Player {
+    pub const fn init_def() -> Player {
         Player {
             x: 1.5,
             y: 1.5,
@@ -31,40 +33,30 @@ impl Player {
     }
 
     // Update player pose by delta increments
-    pub fn update(
-        &mut self,
-        game_map: &GameMap,
-        forward: bool,
-        back: bool,
-        left: bool,
-        right: bool,
-    ) -> bool {
+    pub fn update(&mut self, game_map: &GameMap, movement: &Movement) -> bool {
         // store our current position in case we might need it later
         let previous_pos = (self.x, self.y);
 
         // sin functions are negative because map y-axis is flipped
-        if forward {
+        if movement.forward {
             self.x += self.theta.cos() * self.move_speed;
             self.y += -self.theta.sin() * self.move_speed;
         }
-        if back {
+        if movement.back {
             self.x -= self.theta.cos() * self.move_speed;
             self.y -= -self.theta.sin() * self.move_speed;
         }
-        if left {
+        if movement.left {
             self.theta += self.rotate_speed;
         }
-        if right {
+        if movement.right {
             self.theta -= self.rotate_speed;
         }
         // if moving us on this frame put us into a wall just revert it
         if game_map.point_in_wall(self.x, self.y) {
             (self.x, self.y) = previous_pos;
         }
-        if forward || back || left || right {
-            // info!("New State: {}, {}, {}", self.x, self.y, self.theta);
-        }
-        if left || right || (self.x, self.y) != previous_pos {
+        if movement.left || movement.right || (self.x, self.y) != previous_pos {
             return true;
         } else {
             return false;

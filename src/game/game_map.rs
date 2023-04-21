@@ -13,11 +13,12 @@ pub struct GameMap {
     map_array: [u16; 8],
 }
 
+#[allow(dead_code)]
 impl GameMap {
-    pub fn init_def() -> GameMap {
+    pub const fn init_def() -> GameMap {
         GameMap { map_array: MAP }
     }
-    pub fn init(map_array: [u16; 8]) -> GameMap {
+    pub const fn init(map_array: [u16; 8]) -> GameMap {
         GameMap { map_array }
     }
     /// Check if the map contains a wall at a point.
