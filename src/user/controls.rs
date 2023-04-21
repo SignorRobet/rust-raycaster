@@ -26,6 +26,8 @@ pub struct MovementInput {
     pub back: bool,
     pub left: bool,
     pub right: bool,
+    pub rotate_left: bool,
+    pub rotate_right: bool,
 }
 impl MovementInput {
     const fn init() -> MovementInput {
@@ -34,6 +36,8 @@ impl MovementInput {
             back: false,
             left: false,
             right: false,
+            rotate_left: false,
+            rotate_right: false,
         }
     }
 }
@@ -72,12 +76,18 @@ fn handle_movement_input() -> MovementInput {
         movement.forward = true;
     }
     if input::is_key_down(KeyCode::A) {
-        movement.left = true;
+        movement.rotate_left = true;
     }
     if input::is_key_down(KeyCode::S) {
         movement.back = true;
     }
     if input::is_key_down(KeyCode::D) {
+        movement.rotate_right = true;
+    }
+    if input::is_key_down(KeyCode::Q) {
+        movement.left = true;
+    }
+    if input::is_key_down(KeyCode::E) {
         movement.right = true;
     }
     return movement;
@@ -95,7 +105,7 @@ fn handle_player_input() -> PlayerInput {
 fn handle_game_input() -> GameInput {
     let mut game_input: GameInput = GameInput::init();
 
-    if input::is_key_pressed(KeyCode::Q) {
+    if input::is_key_pressed(KeyCode::F) {
         game_input.fisheye = true;
     }
     return game_input;

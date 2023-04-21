@@ -9,7 +9,7 @@ const FOV: f32 = PI / 2.7; // The player's field of view.
 const HALF_FOV: f32 = FOV * 0.5; // Half the player's field of view.
 const RESOLUTION: (usize, usize) = (640, 500);
 const ANGLE_STEP: f32 = FOV / RESOLUTION.0 as f32; // The angle between each ray.
-const WALL_HEIGHT: f32 = 300.0; // A magic number.
+const WALL_HEIGHT: f32 = 500.0; // A magic number.
 
 pub struct Camera {
     fisheye: bool,
@@ -44,7 +44,9 @@ impl Camera {
             2.0,
             GREEN,
         );
-        draw_text(&get_fps().to_string(), 10.0, 20.0, 20.0, DARKGRAY);
+        draw_text(&get_fps().to_string(), 15.0, 15.0, 20.0, DARKGRAY);
+        draw_text(&theta.to_string(), 50.0, 15.0, 20.0, BLACK);
+        draw_text(&format!("({}, {})", x, y), 150.0, 15.0, 20.0, BLACK);
     }
 
     // go through each column on screen and draw walls in the center.
