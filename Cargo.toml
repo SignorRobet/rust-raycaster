@@ -3,6 +3,7 @@ name = "rust-raycaster"
 version = "0.1.0"
 edition = "2021"
 license = "Apache-2.0"
+rust-version = "1.69.0"
 
 [dependencies]
 macroquad = "0.3.25"

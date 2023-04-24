@@ -37,8 +37,13 @@ impl Camera {
     pub fn render(&self, player: &Player, game_map: &GameMap) {
         let (x, y, theta): (f32, f32, f32) = player.get_pose();
 
-        clear_background(LIGHTGRAY);
-        self.get_view_loop((x, y, theta), game_map);
+        clear_background(DARKGRAY);
+        self.draw_view((x, y, theta), game_map);
+        Self::draw_ui(x, y, theta);
+    }
+
+    fn draw_ui(x: f32, y: f32, theta: f32) {
+        Self::draw_crosshair(MAGENTA, 2., 10.);
 
         draw_rectangle_lines(
             VIEWPORT_OFFSET - 1.,
@@ -46,17 +51,27 @@ impl Camera {
             RES_F32.0 + 1.,
             RES_F32.1 + 1.,
             8.0,
-            MAROON,
+            VIOLET,
         );
-        draw_text(&get_fps().to_string(), 15.0, 15.0, 20.0, DARKGRAY);
-        draw_text(&theta.to_degrees().to_string(), 50.0, 15.0, 20.0, BLACK);
-        draw_text(&format!("({}, {})", x, y), 150.0, 15.0, 20.0, BLACK);
-
-        Self::draw_crosshair(MAGENTA, 2., 10.);
+        draw_text(&get_fps().to_string(), 20.0, 15.0, 20.0, LIGHTGRAY);
+        draw_text(
+            &format!("({:.2})", theta.to_degrees()),
+            50.,
+            15.,
+            20.,
+            LIGHTGRAY,
+        );
+        draw_text(
+            &format!("({:.3}, {:.3})", x, y),
+            150.0,
+            15.0,
+            20.0,
+            LIGHTGRAY,
+        );
     }
 
     // go through each column on screen and draw walls in the center.
-    fn get_view_loop(&self, (x, y, theta): (f32, f32, f32), game_map: &GameMap) {
+    fn draw_view(&self, (x, y, theta): (f32, f32, f32), game_map: &GameMap) {
         for (x, wall) in self.get_view((x, y, theta), game_map).iter().enumerate() {
             let x_f32: f32 = x as f32 + VIEWPORT_OFFSET;
             let (height, shadow) = wall;
