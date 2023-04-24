@@ -7,10 +7,12 @@ use core::f32::consts::{FRAC_PI_2, PI};
 
 const FOV: f32 = PI / 2.7; // The player's field of view.
 const HALF_FOV: f32 = FOV * 0.5; // Half the player's field of view.
-const RESOLUTION: (usize, usize) = (640, 500);
-const HALF_RES: (f32, f32) = (RESOLUTION.0 as f32 / 2., RESOLUTION.1 as f32 / 2.);
-const VIEWPORT_OFFSET: f32 = 20.;
-const ANGLE_STEP: f32 = FOV / RESOLUTION.0 as f32; // The angle between each ray.
+const RES_USIZE: (usize, usize) = (800, 600);
+pub const RES_F32: (f32, f32) = (RES_USIZE.0 as f32, RES_USIZE.1 as f32);
+const Y_RES_WITH_OFFSET: f32 = RES_F32.1 + VIEWPORT_OFFSET;
+const HALF_RES: (f32, f32) = (RES_F32.0 / 2., RES_F32.1 as f32 / 2.);
+pub const VIEWPORT_OFFSET: f32 = 20.;
+const ANGLE_STEP: f32 = FOV / RES_USIZE.0 as f32; // The angle between each ray.
 const WALL_HEIGHT: f32 = 500.0; // A magic number.
 
 pub struct Camera {
@@ -35,16 +37,16 @@ impl Camera {
     pub fn render(&self, player: &Player, game_map: &GameMap) {
         let (x, y, theta): (f32, f32, f32) = player.get_pose();
 
-        clear_background(LIME);
+        clear_background(LIGHTGRAY);
         self.get_view_loop((x, y, theta), game_map);
 
         draw_rectangle_lines(
-            VIEWPORT_OFFSET,
-            VIEWPORT_OFFSET,
-            RESOLUTION.0 as f32,
-            RESOLUTION.1 as f32,
-            2.0,
-            GREEN,
+            VIEWPORT_OFFSET - 1.,
+            VIEWPORT_OFFSET - 1.,
+            RES_F32.0 + 1.,
+            RES_F32.1 + 1.,
+            8.0,
+            MAROON,
         );
         draw_text(&get_fps().to_string(), 15.0, 15.0, 20.0, DARKGRAY);
         draw_text(&theta.to_degrees().to_string(), 50.0, 15.0, 20.0, BLACK);
@@ -60,18 +62,20 @@ impl Camera {
             let (height, shadow) = wall;
             let wall_color;
             if *shadow {
-                wall_color = BLUE;
+                wall_color = LIME;
             } else {
-                wall_color = SKYBLUE;
+                wall_color = DARKGREEN;
             }
-            draw_line(
-                x_f32,
-                200.0 + (80 - (height / 2)) as f32,
-                x_f32,
-                200.0 + *height as f32,
-                1.0,
-                wall_color,
-            );
+            let y1: f32 = (HALF_RES.1 + (30 - height / 2) as f32).max(VIEWPORT_OFFSET);
+            let y2: f32 = (HALF_RES.1 + *height as f32).min(Y_RES_WITH_OFFSET);
+            draw_line(x_f32, y1, x_f32, y2, 1.0, wall_color);
+
+            if y1 > VIEWPORT_OFFSET {
+                draw_line(x_f32, VIEWPORT_OFFSET, x_f32, y1, 1.0, SKYBLUE);
+            }
+            if y2 < Y_RES_WITH_OFFSET {
+                draw_line(x_f32, y2, x_f32, Y_RES_WITH_OFFSET, 1.0, BEIGE);
+            }
         }
     }
 
@@ -98,13 +102,13 @@ impl Camera {
         &self,
         (x, y, theta): (f32, f32, f32),
         game_map: &GameMap,
-    ) -> [(i32, bool); RESOLUTION.0] {
+    ) -> [(i32, bool); RES_USIZE.0] {
         // The player's FOV is split in half by their viewing angle.
         // In order to get the ray's first angle we must
         // add half the FOV to the player's angle to get
         // the edge of the player's FOV.
         let starting_angle: f32 = theta + HALF_FOV;
-        let mut walls: [(i32, bool); RESOLUTION.0] = [(0, false); RESOLUTION.0];
+        let mut walls: [(i32, bool); RES_USIZE.0] = [(0, false); RES_USIZE.0];
 
         for (idx, wall) in walls.iter_mut().enumerate() {
             // `idx` is what number ray we are, `wall` is
@@ -116,14 +120,13 @@ impl Camera {
             let h_dist: f32 = self.horizontal_intersection((x, y), game_map, angle);
             let v_dist: f32 = self.vertical_intersection((x, y), game_map, angle);
 
-            let (min_dist, shadow) = if h_dist < v_dist {
+            let (min_dist, shadow): (f32, bool) = if h_dist < v_dist {
                 (h_dist, false)
             } else {
                 (v_dist, true)
             };
 
-            // Get the minimum of the two distances and
-            // "convert" it into a wall height.
+            // Get the minimum of the two distances and "convert" it into a wall height.
             if self.fisheye {
                 *wall = ((WALL_HEIGHT / min_dist) as i32, shadow);
             } else {
