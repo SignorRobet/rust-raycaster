@@ -2,11 +2,8 @@ use std::f32::consts::{PI, TAU};
 
 use macroquad::prelude::info;
 
-use super::controls::Input;
+use super::controls::{Input, MovementInput};
 use crate::game::game_map::GameMap;
-
-const COLLISION_BUFFER: f32 = 0.075;
-const COLLISION_CORNER: f32 = COLLISION_BUFFER / 2.;
 
 pub struct Player {
     x: f32,
@@ -37,35 +34,54 @@ impl Player {
         }
     }
 
-    // Update player pose by delta increments
+    // Update player pose
     pub fn update(&mut self, game_map: &GameMap, input: &Input) {
-        // store our current position in case we might need it later
-        // (self.x_prev, self.y_prev) = (self.x, self.y);
+        // Rotate player, and calculate movement deltas
+        self.rotate_player(&input.movement_input);
+        let (dx, dy): (f32, f32) = self.calculate_move_deltas(&input.movement_input);
+        let (new_x, new_y): (f32, f32) = (self.x + dx, self.y + dy);
 
-        let mut dx: f32 = 0.;
-        let mut dy: f32 = 0.;
+        // if player is moving, factor in collisions and move player accordingly
+        if new_x != self.x || new_y != self.y {
+            let (x_coll, y_coll): ((bool, bool), (bool, bool));
+            if game_map.is_collision_buffered() {
+                (x_coll, y_coll) = self.detect_collision_with_buffer(game_map, new_x, new_y);
+                self.move_player_with_buffer(x_coll, y_coll, new_x, new_y);
+            } else {
+                (x_coll, y_coll) = self.detect_collision(game_map, new_x, new_y);
+                self.move_player(x_coll, y_coll, new_x, new_y);
+            }
+        }
+    }
+
+    fn calculate_move_deltas(&self, movement_input: &MovementInput) -> (f32, f32) {
+        let (mut dx, mut dy): (f32, f32) = (0., 0.);
 
         // sin functions are negative because map y-axis is flipped
-        if input.movement_input.forward {
+        if movement_input.forward {
             dx += self.move_speed * self.theta.cos();
             dy += self.move_speed * -self.theta.sin();
         }
-        if input.movement_input.back {
+        if movement_input.back {
             dx -= self.move_speed * self.theta.cos();
             dy -= self.move_speed * -self.theta.sin();
         }
-        if input.movement_input.left {
+        if movement_input.left {
             dx += self.move_speed * -self.theta.sin();
             dy -= self.move_speed * self.theta.cos();
         }
-        if input.movement_input.right {
+        if movement_input.right {
             dx -= self.move_speed * -self.theta.sin();
             dy += self.move_speed * self.theta.cos();
         }
-        if input.movement_input.rotate_left {
+        return (dx, dy);
+    }
+
+    fn rotate_player(&mut self, movement_input: &MovementInput) {
+        if movement_input.rotate_left {
             self.theta += self.rotate_speed;
         }
-        if input.movement_input.rotate_right {
+        if movement_input.rotate_right {
             self.theta -= self.rotate_speed;
         }
         // Place bound on player angle
@@ -74,26 +90,58 @@ impl Player {
         } else if self.theta < 0. {
             self.theta += TAU;
         }
+    }
 
-        let new_x: f32 = self.x + dx;
-        let new_y: f32 = self.y + dy;
-
-        if new_x != self.x || new_y != self.y {
-            let (x_coll, y_coll) = self.detect_collision_with_buffer(game_map, new_x, new_y);
-            self.handle_coll_buffer_and_move(x_coll, y_coll, new_x, new_y);
+    fn move_player_with_buffer(
+        &mut self,
+        x_coll: (bool, bool),
+        y_coll: (bool, bool),
+        new_x: f32,
+        new_y: f32,
+    ) {
+        if x_coll.0 | x_coll.1 {
+            if x_coll.0 & (new_x < self.x) {
+                self.x = new_x;
+            } else if x_coll.1 & (new_x > self.x) {
+                self.x = new_x;
+            }
+        } else {
+            self.x = new_x;
+        }
+        if y_coll.0 | y_coll.1 {
+            if y_coll.0 & (new_y < self.y) {
+                self.y = new_y;
+            } else if y_coll.1 & (new_y > self.y) {
+                self.y = new_y;
+            }
+        } else {
+            self.y = new_y;
+        }
+    }
+    fn move_player(&mut self, x_coll: (bool, bool), y_coll: (bool, bool), new_x: f32, new_y: f32) {
+        if !(x_coll.0 & x_coll.1) {
+            self.x = new_x;
+        }
+        if !(y_coll.0 & y_coll.1) {
+            self.y = new_y;
         }
     }
 
-    fn detect_collision(&self, game_map: &GameMap, new_x: f32, new_y: f32) -> (bool, bool) {
-        let mut collisions: (bool, bool) = (false, false);
+    fn detect_collision(
+        &self,
+        game_map: &GameMap,
+        new_x: f32,
+        new_y: f32,
+    ) -> ((bool, bool), (bool, bool)) {
+        let mut collisions: ((bool, bool), (bool, bool)) = ((false, false), (false, false));
 
         if game_map.point_in_wall(new_x, self.y) {
-            collisions.0 = true;
-            // [info!("X collision")];
+            collisions.0 .0 = true;
+            collisions.0 .1 = true;
         }
         if game_map.point_in_wall(self.x, new_y) {
-            collisions.1 = true;
-            // [info!("Y collision")];
+            collisions.1 .0 = true;
+            collisions.1 .1 = true;
         }
         return collisions;
     }
@@ -104,56 +152,34 @@ impl Player {
         new_x: f32,
         new_y: f32,
     ) -> ((bool, bool), (bool, bool)) {
-        let mut collisions = ((false, false), (false, false));
+        let mut collisions: ((bool, bool), (bool, bool)) = ((false, false), (false, false));
+        let coll_buffers: (f32, f32) = game_map.get_collision_buffers();
+
+        let ((new_x_pos, new_x_neg), (new_y_pos, new_y_neg)): ((f32, f32), (f32, f32));
+        let ((x_pos, x_neg), (y_pos, y_neg)): ((f32, f32), (f32, f32));
+
+        (new_x_pos, new_x_neg) = (new_x + coll_buffers.0, new_x - coll_buffers.0);
+        (new_y_pos, new_y_neg) = (new_y + coll_buffers.0, new_y - coll_buffers.0);
+        (x_pos, x_neg) = (self.x + coll_buffers.1, self.x - coll_buffers.1);
+        (y_pos, y_neg) = (self.y + coll_buffers.1, self.y - coll_buffers.1);
 
         // [info!("X collision")];
-        if game_map.point_in_wall(new_x + COLLISION_BUFFER, self.y - COLLISION_CORNER)
-            | game_map.point_in_wall(new_x + COLLISION_BUFFER, self.y + COLLISION_CORNER)
-        {
+        if game_map.point_in_wall(new_x_pos, y_neg) | game_map.point_in_wall(new_x_pos, y_pos) {
             collisions.0 .0 = true;
-        } else if game_map.point_in_wall(new_x - COLLISION_BUFFER, self.y - COLLISION_CORNER)
-            | game_map.point_in_wall(new_x - COLLISION_BUFFER, self.y + COLLISION_CORNER)
+        } else if game_map.point_in_wall(new_x_neg, y_neg)
+            | game_map.point_in_wall(new_x_neg, y_pos)
         {
             collisions.0 .1 = true;
         }
         // [info!("Y collision")];
-        if game_map.point_in_wall(self.x - COLLISION_CORNER, new_y + COLLISION_BUFFER)
-            | game_map.point_in_wall(self.x + COLLISION_CORNER, new_y + COLLISION_BUFFER)
-        {
+        if game_map.point_in_wall(x_neg, new_y_pos) | game_map.point_in_wall(x_pos, new_y_pos) {
             collisions.1 .0 = true;
-        } else if game_map.point_in_wall(self.x - COLLISION_CORNER, new_y - COLLISION_BUFFER)
-            | game_map.point_in_wall(self.x + COLLISION_CORNER, new_y - COLLISION_BUFFER)
+        } else if game_map.point_in_wall(x_neg, new_y_neg)
+            | game_map.point_in_wall(x_pos, new_y_neg)
         {
             collisions.1 .1 = true;
         }
         return collisions;
-    }
-
-    fn handle_coll_buffer_and_move(
-        &mut self,
-        x_coll: (bool, bool),
-        y_coll: (bool, bool),
-        new_x: f32,
-        new_y: f32,
-    ) {
-        if !x_coll.0 & !x_coll.1 {
-            self.x = new_x;
-        } else {
-            if x_coll.0 & (new_x < self.x) {
-                self.x = new_x;
-            } else if x_coll.1 & (new_x > self.x) {
-                self.x = new_x;
-            }
-        }
-        if !y_coll.0 & !y_coll.1 {
-            self.y = new_y;
-        } else {
-            if y_coll.0 & (new_y < self.y) {
-                self.y = new_y;
-            } else if y_coll.1 & (new_y > self.y) {
-                self.y = new_y;
-            }
-        }
     }
 
     // Set player pose to specified position
@@ -172,7 +198,6 @@ impl Player {
     pub fn get_theta(&self) -> f32 {
         self.theta
     }
-
     // Return x, y and theta in a tuple
     pub fn get_pose(&self) -> (f32, f32, f32) {
         (self.x, self.y, self.theta)

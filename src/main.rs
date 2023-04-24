@@ -9,18 +9,20 @@ use user::player::Player;
 
 #[macroquad::main("Ray-Caster")]
 async fn main() {
-    const GAME_MAP: GameMap = GameMap::init_def();
-
+    let mut game_map: GameMap = GameMap::init_def();
     let mut player1: Player = Player::init_def();
     let mut camera: Camera = Camera::init();
-    camera.render(&player1, &GAME_MAP);
+    camera.render(&player1, &game_map);
 
     let mut input: Input = Input::init();
     loop {
-        input.handle_input();
-        player1.update(&GAME_MAP, &input);
+        input.get_input();
+
+        game_map.handle_input(&input);
         camera.handle_input(&input);
-        camera.render(&player1, &GAME_MAP);
+        player1.update(&game_map, &input);
+
+        camera.render(&player1, &game_map);
 
         next_frame().await
     }

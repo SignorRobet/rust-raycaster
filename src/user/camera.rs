@@ -47,7 +47,7 @@ impl Camera {
             GREEN,
         );
         draw_text(&get_fps().to_string(), 15.0, 15.0, 20.0, DARKGRAY);
-        draw_text(&theta.to_string(), 50.0, 15.0, 20.0, BLACK);
+        draw_text(&theta.to_degrees().to_string(), 50.0, 15.0, 20.0, BLACK);
         draw_text(&format!("({}, {})", x, y), 150.0, 15.0, 20.0, BLACK);
 
         Self::draw_crosshair(MAGENTA, 2., 10.);
