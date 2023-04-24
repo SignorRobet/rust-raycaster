@@ -1,1 +1,2 @@
-pub mod game_map;
+pub mod map;
+pub mod math;

@@ -1,9 +1,12 @@
 use std::f32::consts::{PI, TAU};
 
-use macroquad::prelude::info;
+use macroquad::prelude::get_frame_time;
 
 use super::controls::{Input, MovementInput};
-use crate::game::game_map::GameMap;
+use crate::game::map::GameMap;
+
+const DEF_MOVE_SPEED: f32 = 2.0;
+const DEF_ROTATE_SPEED: f32 = PI;
 
 pub struct Player {
     x: f32,
@@ -20,8 +23,8 @@ impl Player {
             x: 1.5,
             y: 1.5,
             theta: 0.0,
-            move_speed: 0.045,
-            rotate_speed: 0.045,
+            move_speed: DEF_MOVE_SPEED,
+            rotate_speed: DEF_ROTATE_SPEED,
         }
     }
     pub fn init(x: f32, y: f32, theta: f32) -> Player {
@@ -29,8 +32,8 @@ impl Player {
             x,
             y,
             theta,
-            move_speed: 0.045,
-            rotate_speed: 0.045,
+            move_speed: DEF_MOVE_SPEED,
+            rotate_speed: DEF_ROTATE_SPEED,
         }
     }
 
@@ -59,30 +62,30 @@ impl Player {
 
         // sin functions are negative because map y-axis is flipped
         if movement_input.forward {
-            dx += self.move_speed * self.theta.cos();
-            dy += self.move_speed * -self.theta.sin();
+            dx += self.move_speed * get_frame_time() * self.theta.cos();
+            dy += self.move_speed * get_frame_time() * -self.theta.sin();
         }
         if movement_input.back {
-            dx -= self.move_speed * self.theta.cos();
-            dy -= self.move_speed * -self.theta.sin();
+            dx -= self.move_speed * get_frame_time() * self.theta.cos();
+            dy -= self.move_speed * get_frame_time() * -self.theta.sin();
         }
         if movement_input.left {
-            dx += self.move_speed * -self.theta.sin();
-            dy -= self.move_speed * self.theta.cos();
+            dx += self.move_speed * get_frame_time() * -self.theta.sin();
+            dy -= self.move_speed * get_frame_time() * self.theta.cos();
         }
         if movement_input.right {
-            dx -= self.move_speed * -self.theta.sin();
-            dy += self.move_speed * self.theta.cos();
+            dx -= self.move_speed * get_frame_time() * -self.theta.sin();
+            dy += self.move_speed * get_frame_time() * self.theta.cos();
         }
         return (dx, dy);
     }
 
     fn rotate_player(&mut self, movement_input: &MovementInput) {
         if movement_input.rotate_left {
-            self.theta += self.rotate_speed;
+            self.theta += self.rotate_speed * get_frame_time();
         }
         if movement_input.rotate_right {
-            self.theta -= self.rotate_speed;
+            self.theta -= self.rotate_speed * get_frame_time();
         }
         // Place bound on player angle
         if self.theta > TAU {

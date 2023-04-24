@@ -1,7 +1,7 @@
 mod game;
 mod user;
 
-use game::game_map::GameMap;
+use game::map::GameMap;
 use macroquad::prelude::*;
 use user::camera::Camera;
 use user::controls::Input;

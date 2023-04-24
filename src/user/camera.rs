@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 
 use super::{controls::Input, player::Player};
-use crate::game::game_map::*;
+use crate::game::map::*;
 
 use core::f32::consts::{FRAC_PI_2, PI};
 

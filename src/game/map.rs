@@ -12,8 +12,8 @@ const MAP: [u16; 8] = [
     0b1000100000001101,
     0b1111111111111111,
 ];
-const COLLISION_BUFFER: f32 = 0.075;
-const COLLISION_CORNER: f32 = COLLISION_BUFFER / 2.;
+const DEF_COLLISION_BUFFER: f32 = 0.075;
+const DEF_COLLISION_CORNER: f32 = DEF_COLLISION_BUFFER / 2.;
 
 pub struct GameMap {
     map_array: [u16; 8],
@@ -27,16 +27,16 @@ impl GameMap {
     pub const fn init_def() -> GameMap {
         GameMap {
             map_array: MAP,
-            collision_buffer: COLLISION_BUFFER,
-            collision_corner: COLLISION_CORNER,
+            collision_buffer: DEF_COLLISION_BUFFER,
+            collision_corner: DEF_COLLISION_CORNER,
             collision_buffer_enabled: true,
         }
     }
     pub const fn init(map_array: [u16; 8]) -> GameMap {
         GameMap {
             map_array,
-            collision_buffer: COLLISION_BUFFER,
-            collision_corner: COLLISION_CORNER,
+            collision_buffer: DEF_COLLISION_BUFFER,
+            collision_corner: DEF_COLLISION_CORNER,
             collision_buffer_enabled: true,
         }
     }

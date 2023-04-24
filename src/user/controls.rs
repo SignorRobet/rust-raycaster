@@ -86,10 +86,10 @@ fn get_movement_input() -> MovementInput {
     if input::is_key_down(KeyCode::D) {
         movement.right = true;
     }
-    if input::is_key_down(KeyCode::Q) {
+    if input::is_key_down(KeyCode::Q) | input::is_key_down(KeyCode::Left) {
         movement.rotate_left = true;
     }
-    if input::is_key_down(KeyCode::E) {
+    if input::is_key_down(KeyCode::E) | input::is_key_down(KeyCode::Right) {
         movement.rotate_right = true;
     }
     return movement;
